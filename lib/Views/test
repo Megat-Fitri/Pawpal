@@ -9,6 +9,7 @@ import 'package:pawpal/models/user.dart';
 import 'package:pawpal/shared/mydrawer.dart';
 import 'package:pawpal/Views/donate_screen.dart';
 
+
 class MainScreen extends StatefulWidget {
   final User? user;
 
@@ -22,7 +23,6 @@ class _MainPageState extends State<MainScreen> {
   List<Pet> listPets = [];
   String status = "Loading...";
   late double screenWidth, screenHeight;
-
 
   List<String> petTypes = [
     'Dog',
@@ -39,11 +39,14 @@ class _MainPageState extends State<MainScreen> {
     return widget.user == null || widget.user!.userId == "0";
   }
 
+
   @override
   void initState() {
     super.initState();
     loadPets('');
   }
+
+
   @override
   Widget build(BuildContext context) {
     screenWidth = MediaQuery.of(context).size.width;
@@ -56,7 +59,7 @@ class _MainPageState extends State<MainScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Main Page',style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),), backgroundColor: Colors.pinkAccent,
+        title: Text('Main Page'), backgroundColor: Colors.pinkAccent,
         actions: [
           IconButton(
             onPressed: () {
@@ -75,6 +78,15 @@ class _MainPageState extends State<MainScreen> {
               loadPets('');
             },
             icon: Icon(Icons.refresh),
+          ),
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => LoginScreen()),
+              );
+            },
+            icon: Icon(Icons.login),
           ),
         ],
       ),
@@ -128,8 +140,9 @@ class _MainPageState extends State<MainScreen> {
                                           screenWidth *
                                           0.22, // balanced aspect ratio
                                       color: Colors.grey[200],
-                                      child: Image.network(
-                                        '${MyConfig.baseUrl}/file_put_contents/${listPets[index].image_paths[0]}',
+                                      child: listPets[index].image_paths.isNotEmpty
+                                          ? Image.network(
+                                        '${MyConfig.baseUrl}/file_put_contents/${listPets[index].image_paths.first}',
                                         fit: BoxFit.cover,
                                         errorBuilder:
                                             (context, error, stackTrace) {
@@ -139,7 +152,7 @@ class _MainPageState extends State<MainScreen> {
                                                 color: Colors.grey,
                                               );
                                             },
-                                      ),
+                                      ):const Icon(Icons.pets, size: 60),
                                     ),
                                   ),
 
@@ -210,7 +223,8 @@ class _MainPageState extends State<MainScreen> {
                                       ],
                                     ),
                                   ),
-                                  IconButton(
+
+                                   IconButton(
                                   onPressed: () {
                                     showDetailsPet(index);
                                   },
@@ -259,6 +273,7 @@ class _MainPageState extends State<MainScreen> {
       drawer: MyDrawer(user: widget.user),
     );
   }
+
 
   void showDetailsPet(int index) {
     showDialog(
@@ -539,6 +554,7 @@ class _MainPageState extends State<MainScreen> {
       },
     );
   }
+
   void showSearchDialog() {
     TextEditingController searchController = TextEditingController();
 
@@ -708,7 +724,7 @@ class _MainPageState extends State<MainScreen> {
       },
     );
   }
-  
+
   void _performFilter(String? petType) {
     Navigator.of(context).pop(); // Close the filter dialog
     if (petType == null || petType.isEmpty) {
@@ -716,86 +732,176 @@ class _MainPageState extends State<MainScreen> {
     } else {
       loadPets(petType);
     }
-    
   }
-  
-  void loadPets(String query) {
+void loadPets(String query) {
     listPets.clear();
     setState(() {
       status = "Loading...";
     });
+    //print("SEARCH QUERY: [$query]");
     http
-        .get(
-      Uri.parse(
-          '${MyConfig.baseUrl}/api/pawpal/get_my_pets?search=$query'),)
+        .get(Uri.parse('${MyConfig.baseUrl}/api/pawpal/get_my_pets.php?search=$query'))
         .then((response) {
-      if (response.statusCode == 200) {
-        var jsondata = jsonDecode(response.body);
-        var data = jsondata(jsondata);
-        if (jsondata['status'] == 'success' && jsondata['data'] != null && jsondata['data'].isNotEmpty) {
-          for (var item in jsondata['data']) {
-              listPets.add(Pet.fromJson(item));
+          // print("RESPONSE: ${response.body}");
+          if (response.statusCode == 200) {
+            var jsonResponse = jsonDecode(response.body);
+            //var data = jsonDecode(jsonResponse);
+            if (jsonResponse['status'] == 'success' &&
+                jsonResponse['data'] != null &&
+                jsonResponse['data'].isNotEmpty) {
+              listPets.clear();
+
+              for (var item in jsonResponse['data']) {
+                listPets.add(Pet.fromJson(item));
+              }
+              setState(() {
+                status = "";
+              });
+            } else {
+              setState(() {
+                listPets.clear();
+                status = "No pets found";
+              });
             }
-          setState(() {
-            status = "";
-          });
-          
-        } else {
-          setState(() {
-            listPets.clear();
-            status = "No Pets Available";
-          });
-        }
-      } else {
-        setState(() {
-          status = "Failed to load pets";
+            // print(jsonResponse);
+          } else {
+            setState(() {
+              status = "Failed to load data";
+            });
+          }
         });
-      }
-    });
   }
-  
+
+
+
   void showAdoptDialog() {
-    TextEditingController messageController = TextEditingController();
+    TextEditingController msgController = TextEditingController();
+
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Request to Adopt ${selectedPet?.petName}'),
-          content: TextField(
-            controller: messageController,
-            maxLines: 4,
-            decoration: InputDecoration(
-              hintText: 'Enter your message to the owner',
-              border: OutlineInputBorder(),
+      barrierDismissible: true,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // TITLE
+                const Text(
+                  "Message",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                ),
+
+                const SizedBox(height: 12),
+
+                // SEARCH FIELD
+                TextField(
+                  controller: msgController,
+                  autofocus: true,
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: (value) {
+                    submitmessage(value);
+                  },
+                  decoration: InputDecoration(
+                    hintText: "e.g. I want to adopt a dog",
+
+                    filled: true,
+                    fillColor: Colors.grey.shade100,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // ACTION BUTTONS
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      style: TextButton.styleFrom(foregroundColor: Colors.red),
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text("Cancel"),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color.fromARGB(255, 238, 176, 83),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        submitmessage(msgController.text);
+                      },
+
+                      child: const Text("Request"),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          actions: [
-            TextButton(
-              child: Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            ElevatedButton(
-              child: Text('Send Request'),
-              onPressed: () {
-                // Handle sending adopt request here
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Adopt request sent!'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              },
-            ),
-          ],
         );
       },
     );
   }
 
-
-
   
+  
+  
+  void submitmessage(String value) {
+    String message = value;
+    http.post(
+      Uri.parse('${MyConfig.baseUrl}/api/pawpal/submit_adopt.php'),
+      body: {
+        'pet_id': selectedPet?.petId,
+        'user_id': widget.user?.userId,
+        'message': message,
+      },
+    ).then((response) {
+      if (response.statusCode == 200) {
+        var jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['status'] == 'success') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Adoption request sent successfully!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to send adoption request.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${response.statusCode}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    });
+  }
+  
+  
+  
+  
+
+
+
+
 }

@@ -29,8 +29,12 @@ class _SubmitPetScreenState extends State<SubmitPetScreen> {
     'Reptile',
     'Other',
   ];
+  List<String> petGender = [
+    'Male',
+    'Female',
+  ];  
 
-  List<String> categories = [
+  List<String> petCategory = [
     'Adoption',
     'Lost',
     'Found',
@@ -38,16 +42,19 @@ class _SubmitPetScreenState extends State<SubmitPetScreen> {
     'Help / Rescue ',
   ];
   TextEditingController petNameController = TextEditingController();
+  TextEditingController petAgeController = TextEditingController();
+  TextEditingController petHealthController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
   TextEditingController latController = TextEditingController();
   TextEditingController lngController = TextEditingController();
-  String selectedpet = 'Cat';
-  String selectedcategory = 'Adoption';
+  String selectedpet = 'Select Pet';
+  String selectedgender = 'Select Gender';
+  String selectedcategory = 'Select Category';
   File? image;
   Uint8List? webImage; // for web
   late double height, width;
   late Position mypostion;
-  List<File> images = []; // store multiple images
+  List<File> image_paths = []; // store multiple images
 
   @override
   Widget build(BuildContext context) {
@@ -59,15 +66,7 @@ class _SubmitPetScreenState extends State<SubmitPetScreen> {
       width = width;
     }
     return Scaffold(
-      backgroundColor: Colors.grey[300],
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        iconTheme: IconThemeData(color: Colors.white),
-        title: Text(
-          'Submit Pets Page',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-      ),
+      appBar: AppBar(backgroundColor: Colors.pinkAccent,title: Text('Submit Pets Page'),),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -93,7 +92,7 @@ class _SubmitPetScreenState extends State<SubmitPetScreen> {
                           ),
                         ],
                       ),
-                      child: images.isEmpty
+                      child: image_paths.isEmpty
                           ? Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -118,7 +117,7 @@ class _SubmitPetScreenState extends State<SubmitPetScreen> {
                               height: height / 3, // height of image boxes
                               child: ListView.builder(
                                 scrollDirection: Axis.horizontal,
-                                itemCount: images.length,
+                                itemCount: image_paths.length,
                                 itemBuilder: (context, index) {
                                   return Padding(
                                     padding: const EdgeInsets.all(4.0),
@@ -129,7 +128,7 @@ class _SubmitPetScreenState extends State<SubmitPetScreen> {
                                             12,
                                           ),
                                           child: Image.file(
-                                            images[index],
+                                            image_paths[index],
                                             width: width / 2.2, // box width
                                             height: height / 3,
                                             fit: BoxFit.cover,
@@ -141,7 +140,7 @@ class _SubmitPetScreenState extends State<SubmitPetScreen> {
                                           child: GestureDetector(
                                             onTap: () {
                                               setState(() {
-                                                images.removeAt(index);
+                                                image_paths.removeAt(index);
                                               });
                                             },
                                             child: Container(
@@ -173,6 +172,7 @@ class _SubmitPetScreenState extends State<SubmitPetScreen> {
                       border: OutlineInputBorder(),
                     ),
                   ),
+
                   SizedBox(height: 10),
                   DropdownButtonFormField<String>(
                     decoration: InputDecoration(
@@ -193,6 +193,34 @@ class _SubmitPetScreenState extends State<SubmitPetScreen> {
                       });
                     },
                   ),
+                  SizedBox(height: 10),
+                  TextField(
+                    controller: petAgeController,
+                    decoration: InputDecoration(
+                      labelText: 'Pet Age',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  DropdownButtonFormField<String>(
+                    decoration: InputDecoration(
+                      labelText: 'Select Pet Gender',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                    ),
+                    items: petGender.map((String category) {
+                      return DropdownMenuItem<String>(
+                        value: category,
+                        child: Text(category),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        selectedgender = newValue!;
+                      });
+                    },
+                  ),
 
                   SizedBox(height: 10),
                   DropdownButtonFormField<String>(
@@ -202,7 +230,7 @@ class _SubmitPetScreenState extends State<SubmitPetScreen> {
                         borderRadius: BorderRadius.circular(10.0),
                       ),
                     ),
-                    items: categories.map((String category) {
+                    items: petCategory.map((String category) {
                       return DropdownMenuItem<String>(
                         value: category,
                         child: Text(category),
@@ -213,6 +241,14 @@ class _SubmitPetScreenState extends State<SubmitPetScreen> {
                         selectedcategory = newValue!;
                       });
                     },
+                  ),
+                  SizedBox(height: 10),
+                  TextField(
+                    controller: petHealthController,
+                    decoration: InputDecoration(
+                      labelText: 'Health Information',
+                      border: OutlineInputBorder(),
+                    ),
                   ),
                   SizedBox(height: 10),
                   TextField(
@@ -286,7 +322,7 @@ class _SubmitPetScreenState extends State<SubmitPetScreen> {
   }
 
   void pickimagedialog() {
-    if (images.length >= 3) {
+    if (image_paths.length >= 3) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("You can only upload up to 3 images"),
@@ -368,7 +404,7 @@ class _SubmitPetScreenState extends State<SubmitPetScreen> {
 
   // Open camera to take a picture
   Future<void> openCamera() async {
-    if (images.length >= 3) {
+    if (image_paths.length >= 3) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Maximum 3 images allowed"),
@@ -382,14 +418,14 @@ class _SubmitPetScreenState extends State<SubmitPetScreen> {
     final pickedFile = await picker.pickImage(source: ImageSource.camera);
 
     if (pickedFile != null) {
-      images.add(File(pickedFile.path));
-      cropImage(images.length - 1);
+      image_paths.add(File(pickedFile.path));
+      cropImage(image_paths.length - 1);
     }
   }
 
   // Open gallery to select a picture
   Future<void> openGallery() async {
-    if (images.length >= 3) {
+    if (image_paths.length >= 3) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Maximum 3 images allowed"),
@@ -403,15 +439,15 @@ class _SubmitPetScreenState extends State<SubmitPetScreen> {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
-      images.add(File(pickedFile.path));
-      cropImage(images.length - 1);
+        image_paths.add(File(pickedFile.path));
+      cropImage(image_paths.length - 1);
     }
   }
 
   // Crop the selected image
   Future<void> cropImage(int index) async {
     CroppedFile? croppedFile = await ImageCropper().cropImage(
-      sourcePath: images[index].path,
+      sourcePath: image_paths[index].path,
       aspectRatio: CropAspectRatio(ratioX: 5, ratioY: 3),
       uiSettings: [
         AndroidUiSettings(
@@ -424,7 +460,7 @@ class _SubmitPetScreenState extends State<SubmitPetScreen> {
     );
 
     if (croppedFile != null) {
-      images[index] = File(croppedFile.path);
+      image_paths[index] = File(croppedFile.path);
       setState(() {});
     }
   }
@@ -463,7 +499,7 @@ class _SubmitPetScreenState extends State<SubmitPetScreen> {
     }
 
     // Image validation
-    if (images.isEmpty) {
+    if (image_paths.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Please select at least one image"),
@@ -538,25 +574,30 @@ class _SubmitPetScreenState extends State<SubmitPetScreen> {
   // Submit pet data to the server
   void submitPets() {
     List<String> base64Images = [];
-    for (var img in images) {
+    for (var img in image_paths) {
       base64Images.add(base64Encode(img.readAsBytesSync()));
     }
     String petName = petNameController.text.trim();
+    String petAge = petAgeController.text.trim();
+    String petHealth = petHealthController.text.trim();
     String description = descriptionController.text.trim();
     String lat = latController.text.trim();
     String lng = lngController.text.trim();
 
     http
         .post(
-          Uri.parse('${MyConfig.baseUrl}/pawpal/API/submit_pets.php'),
+          Uri.parse('${MyConfig.baseUrl}/api/pawpal/submit_pet.php'),
           body: {
             // send to API
             'user_id': widget.user?.userId,
             'pet_name': petName,
+            'pet_age': petAge,
+            'pet_gender': selectedgender,
             'pet_type': selectedpet,
             'category': selectedcategory,
+            'pet_health': petHealth,
             'description': description,
-            'images': jsonEncode(base64Images), // send as JSON array
+            'image_paths': jsonEncode(base64Images), // send as JSON array
             'lat': lat.toString(),
             'lng': lng.toString(),
           },

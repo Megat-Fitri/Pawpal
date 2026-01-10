@@ -5,6 +5,8 @@ class User {
   String? userPhone;
   String? userPassword;
   String? userRegdate;
+  String? userImage;
+  int? points;
 
   User(
       {this.userId,
@@ -12,7 +14,10 @@ class User {
       this.userName,
       this.userPhone,
       this.userPassword,
-      this.userRegdate});
+      this.userRegdate,
+      this.userImage,
+      this.points
+      });
 
   User.fromJson(Map<String, dynamic> json) {
     userId = json['user_id'];
@@ -21,6 +26,8 @@ class User {
     userPhone = json['phone'];
     userPassword = json['password'];
     userRegdate = json['reg_date'];
+    userImage = json['user_image'];
+    points = int.parse(json['user_wallet']);
   }
 
   get name => null;
@@ -33,6 +40,8 @@ class User {
     data['phone'] = userPhone;
     data['password'] = userPassword;
     data['reg_date'] = userRegdate;
+    data['user_image'] = userImage;
+    data['user_wallet'] = points;
     return data;
   }
 }

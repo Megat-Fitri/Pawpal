@@ -13,20 +13,10 @@ try {
     // Support two modes: fetch by userid or by petid
     if (!empty($_GET['userid'])) {
         // Fetch all pets by user_id (for MainScreen listing)
-        $userid = $conn->real_escape_string($_GET['userid']);
+        $userid = $conn->real_escape_string($_GET['user_id']);
         
         $query = "
-            SELECT 
-                pet_id,
-                user_id,
-                pet_name,
-                pet_type,
-                category,
-                description,
-                images_paths,
-                lat,
-                lng,
-                created_at
+            SELECT *
             FROM tbl_pets
             WHERE user_id = '$userid'
             ORDER BY created_at DESC
@@ -34,20 +24,10 @@ try {
         
     } elseif (!empty($_GET['petid'])) {
         // Fetch single pet by pet_id
-        $petid = $conn->real_escape_string($_GET['petid']);
+        $petid = $conn->real_escape_string($_GET['pet_id']);
         
         $query = "
-            SELECT 
-                pet_id,
-                user_id,
-                pet_name,
-                pet_type,
-                category,
-                description,
-                images_paths,
-                lat,
-                lng,
-                created_at
+            SELECT *
             FROM tbl_pets
             WHERE pet_id = '$petid'
         ";
@@ -56,17 +36,7 @@ try {
         $search = $conn->real_escape_string($_GET['search']);
         
         $query = "
-            SELECT 
-                pet_id,
-                user_id,
-                pet_name,
-                pet_type,
-                category,
-                description,
-                images_paths,
-                lat,
-                lng,
-                created_at
+            SELECT *
             FROM tbl_pets
             WHERE pet_name LIKE '%$search%'
                OR pet_type LIKE '%$search%'
@@ -77,17 +47,7 @@ try {
     } else {
         // Default: get all pets (public listing)
         $query = "
-            SELECT 
-                pet_id,
-                user_id,
-                pet_name,
-                pet_type,
-                category,
-                description,
-                images_paths,
-                lat,
-                lng,
-                created_at
+            SELECT *
             FROM tbl_pets
             ORDER BY created_at DESC
         ";

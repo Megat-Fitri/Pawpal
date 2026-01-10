@@ -4,12 +4,11 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:pawpal/Views/home_screen.dart';
-import 'package:pawpal/Views/main_screen.dart';
+import 'package:pawpal/Views/submit_pet_screen_new.dart';
 import 'package:pawpal/myconfig.dart';
 import 'package:pawpal/Views/register_screen.dart';
 import 'package:pawpal/models/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:pawpal/Views/submit_pet_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

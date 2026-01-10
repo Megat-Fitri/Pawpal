@@ -1,27 +1,30 @@
 <?php
 header("Access-Control-Allow-Origin: *"); // running as crome app
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     if (!isset($_POST['email']) || !isset($_POST['password'])) {
         $response = array('status' => 'failed', 'message' => 'Bad Request');
         sendJsonResponse($response);
         exit();
     }
-    $email = $_POST['email'];
-    $password = $_POST['password'];
-    $hashedpassword = sha1($password);
+    
+    $user_id = $_POST['email'];
+
     include 'dbconnect.php';
-    $sqllogin = "SELECT * FROM `tbl_users` WHERE `email` = '$email' AND `password` = '$hashedpassword'";
-    $result = $conn->query($sqllogin);
+
+
+    $sqldonate = "SELECT * FROM `tbl_donation` WHERE user_id = '$user_id'";
+    
+    $result = $conn->query($sqldonate);
     if ($result->num_rows > 0) {
-        $userdata = array();
+        $data = array();
         while ($row = $result->fetch_assoc()) {
-            $userdata[] = $row;
+            $data[] = $row;
         }
-        $response = array('status' => 'success', 'message' => 'Login successful', 'data' => $userdata);
+        $response = array('status' => 'success', 'data' => $data);
         sendJsonResponse($response);
     } else {
-        $response = array('status' => 'failed', 'message' => 'Invalid email or password','data'=>null);
+        $response = array('status' => 'failed', 'data' =>null);
         sendJsonResponse($response);
     }
 
