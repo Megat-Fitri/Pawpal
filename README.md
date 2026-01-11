@@ -10,14 +10,14 @@ A platform for user to appyly services for their beloved pet. This application i
    - Show user's registered data
    - User can edit the profile data
    - include profile picture
-   - include wallet poin
-4. Pet Details Submission
-   -Submit up to 3 images
-   -Fill pet details (name, type, health, description)
-   -Category of help (adoption, donation, help, etc)
-6. View Pet
-   -View other pets
-   -Help pet of your choice
+   - include wallet point
+3. Pet Details Submission
+   - Submit up to 3 images
+   - Fill pet details (name, type, health, description)
+   - Category of help (adoption, donation, help, etc)
+4. View Pet
+   - View other pets
+   - Help pet of your choice
 
 ## API Table
 
